@@ -1,0 +1,132 @@
+# Modules
+import arcpy
+from arcpy import env
+import csv
+
+# Environemts
+env.overwriteOutput = True
+env.qualifiedFieldNames = True
+env.transferDomains = True
+sdeconn = arcpy.CreateDatabaseConnection_management(r'C:\sdeconn', 'sdeconntest.sde', 'ORACLE', 'instance', 'DATABASE_AUTH', 'username', 'password', 'SAVE_USERNAME')
+env.workspace = sdeconn
+
+
+# Null value error reporting function
+def null_error_report(fc):
+    desc = arcpy.da.Describe(fc)
+    fcname = desc['baseName']
+    fieldlist = [f.name for f in arcpy.ListFields(fc)]
+    print(fieldlist)
+    null_check = 'DEPT_RESP IS NULL'
+    fc_nulls = []
+
+    # Included fields
+    oid = 'OBJECTID'
+    modby = 'MODIFIED_BY'
+
+    # Mandatory fields
+    stnum = 'STREET_NUMBER'
+    stname = 'STREET_NAME'
+    deptresp = 'DEPT_RESP'
+
+    # Pole mandatory
+    subtypecd = 'SUBTYPECD'
+    circuits = 'CIRCUITS'
+
+    # Light mandatory
+    lightsource = 'LIGHT_SOURCE'
+    numlights = 'NUM_LIGHTS'
+    poleoid = 'POLE_OBJECTID'
+    transoid = 'XMISN_OBJECTID'
+    lightuse = 'LIGHT_USAGE'
+
+    print('Running NULL values error report for {}...'.format(fcname))
+
+    # Light report
+    if stnum in fieldlist and stname in fieldlist and lightsource in fieldlist and numlights in fieldlist and poleoid in fieldlist \
+            and transoid in fieldlist and lightuse in fieldlist and deptresp in fieldlist:
+        print('Finding nulls in {} feature class'.format(fcname))
+        fields = [oid, stnum, stname, lightsource, numlights, poleoid, transoid, lightuse, deptresp, modby]
+        with arcpy.da.SearchCursor(fc, fields, null_check) as cursor:
+            for row in cursor:
+                fc_nulls.append(row)
+        if bool(fc_nulls):
+            with open(r'C:\error_reports\{}_errorreport.csv.'.format(fcname), 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(fields)
+                writer.writerows(fc_nulls)
+            print('Error report for {} complete'.format(fcname))
+        else:
+            print('No null values for {}'.format(fcname))
+
+    # Pole report
+    elif stnum in fieldlist and stname in fieldlist and subtypecd in fieldlist and circuits in fieldlist and deptresp in fieldlist:
+        print('Finding nulls in {} feature class'.format(fcname))
+        fields = [oid, stnum, stname, subtypecd, circuits, deptresp, modby]
+        with arcpy.da.SearchCursor(fc, fields, null_check) as cursor:
+            for row in cursor:
+                fc_nulls.append(row)
+        if bool(fc_nulls):
+            with open(r'C:\error_reports\{}_errorreport.csv.'.format(fcname), 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(fields)
+                writer.writerows(fc_nulls)
+            print('Error report for {} complete'.format(fcname))
+        else:
+            print('No null values for {}'.format(fcname))
+
+    # Mandatory standard report
+    elif stnum in fieldlist and stname in fieldlist and deptresp in fieldlist:
+        print('Finding nulls in {} feature class'.format(fcname))
+        fields = [oid, stnum, stname, deptresp, modby]
+        with arcpy.da.SearchCursor(fc, fields, null_check) as cursor:
+            for row in cursor:
+                fc_nulls.append(row)
+        if bool(fc_nulls):
+            with open(r'C:\error_reports\{}_errorreport.csv.'.format(fcname), 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(fields)
+                writer.writerows(fc_nulls)
+            print('Error report for {} complete'.format(fcname))
+        else:
+            print('No null values for {}'.format(fcname))
+
+    # Lines loop
+    elif deptresp in fieldlist:
+        print('Finding nulls in {} feature class'.format(fcname))
+        fields = [oid, deptresp, modby]
+        with arcpy.da.SearchCursor(fc, fields, null_check) as cursor:
+            for row in cursor:
+                fc_nulls.append(row)
+        if bool(fc_nulls):
+            with open(r'C:\error_reports\{}_errorreport.csv.'.format(fcname), 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(fields)
+                writer.writerows(fc_nulls)
+            print('Error report for {} complete'.format(fcname))
+        else:
+            print('No null values for {}'.format(fcname))
+
+# Features to run report on 
+capbank = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.CapacitorBank'
+dpd = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.DynamicProtDevice'
+fusebank = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.FuseBank'
+miscnetft = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.MiscNetworkFeature'
+primeter = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.PrimaryMeter'
+regbank = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.RegulatorBank'
+switchbank = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.SwitchBank'
+transbank = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.TransformerBank'
+distgen = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Structures\ELECOWNER.DistributionGeneration'
+prioh = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.PrimaryOHLine'
+priug = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.PrimaryUGLine'
+secoh = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.SecondaryOHLine'
+secug = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.SecondaryUGLine'
+seccon = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Network_Features\ELECOWNER.SecondaryConnections'
+jua = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Structures\ELECOWNER.JUA'
+pole = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Structures\ELECOWNER.Pole'
+light = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Structures\ELECOWNER.Light'
+riser = r'C:\sdeconn\gisweb.sde\ELECOWNER.Electric_Structures\ELECOWNER.Riser'
+priftssde = [capbank, dpd, fusebank, miscnetft, primeter, regbank, switchbank, transbank, distgen, prioh, priug, secoh, secug, seccon, jua, pole, light, riser]
+
+for sdeft in priftssde:
+    null_error_report(sdeft)
